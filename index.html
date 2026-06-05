@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summer Schedule – June/July 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f0f4f8;
+    color: #1a202c;
+    padding: 16px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #718096;
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #4a5568;
+  }
+
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-bar {
+    width: 22px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Calendar grid */
+  .calendar-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(120px, 1fr));
+    gap: 0;
+    width: 100%;
+    min-width: 700px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .month-label {
+    grid-column: 1 / -1;
+    background: #4a5568;
+    color: #fff;
+    text-align: center;
+    padding: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .day-header {
+    background: #2d3748;
+    color: #fff;
+    text-align: center;
+    padding: 10px 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .day {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    min-height: 140px;
+    padding: 6px;
+    padding-top: 12px; /* room for emily banner */
+    vertical-align: top;
+    position: relative;
+  }
+
+  .day.empty {
+    background: #f7fafc;
+    min-height: 150px;
+  }
+
+  .day-number {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .day-number .date-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Trip bars – full-width colored strips for multi-day trips */
+  .trip-bars {
+    margin-bottom: 5px;
+  }
+
+  .trip-bar {
+    display: block;
+    width: 100%;
+    padding: 2px 5px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .vendt-bar  { background: #2f855a; color: #fff; }
+  .gwydhar-bar { background: #0891b2; color: #fff; }
+  .susan-bar  { background: #7c3aed; color: #fff; }
+
+  /* Event blocks */
+  .event {
+    border-radius: 5px;
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .event .who {
+    font-size: 0.65rem;
+    opacity: 0.85;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 1px;
+  }
+
+  /* Color palette per person/group */
+  .emily    { background: #fed7e2; color: #702459; border-left: 3px solid #e53e3e; }
+  .art      { background: #bee3f8; color: #1a365d; border-left: 3px solid #3182ce; }
+  .clara    { background: #c6f6d5; color: #22543d; border-left: 3px solid #38a169; }
+  .william  { background: #fefcbf; color: #744210; border-left: 3px solid #d69e2e; }
+  .charlie  { background: #e9d8fd; color: #44337a; border-left: 3px solid #805ad5; }
+  .granby   { background: #feebc8; color: #7b341e; border-left: 3px solid #dd6b20; }
+  .grandma  { background: #b2f5ea; color: #1d4044; border-left: 3px solid #319795; }
+  .family   { background: #e2e8f0; color: #2d3748; border-left: 3px solid #718096; }
+  .kids     { background: #ffd6e7; color: #6b1535; border-left: 3px solid #b83280; }
+  .camp     { background: #c3dafe; color: #1e3a5f; border-left: 3px solid #4c51bf; }
+  .optional { background: #e8f4f8; color: #2c5f6e; border-left: 3px dashed #63b3cd; }
+  .vendt    { background: #c6f6d5; color: #1c4532; border-left: 3px solid #2f855a; }
+  .gwydhar  { background: #cffafe; color: #164e63; border-left: 3px solid #0891b2; }
+  .susan    { background: #ede9fe; color: #4c1d95; border-left: 3px solid #7c3aed; }
+
+  /* Emily away banner – absolute top of cell */
+  .away-banner {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: #e53e3e;
+  }
+
+  .camp-banner {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: #4c51bf;
+  }
+</style>
+</head>
+<body>
+
+<h1>☀️ Summer Schedule</h1>
+<p class="subtitle">June – July 2026 · Family Tracker</p>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#e53e3e"></div> Emily (work trip)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3182ce"></div> Art</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#38a169"></div> Clara</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#d69e2e"></div> William</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#805ad5"></div> Charlie</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#dd6b20"></div> Granby &amp; Bepop</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#319795"></div> Grandma &amp; Papa</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4c51bf"></div> Camp Rokilio</div>
+  <div class="legend-item"><div class="legend-bar" style="background:#2f855a"></div> Vendt Family – Green Lake</div>
+  <div class="legend-item"><div class="legend-bar" style="background:#0891b2"></div> Gwydhar – Green Lake</div>
+  <div class="legend-item"><div class="legend-bar" style="background:#7c3aed"></div> Susan – Green Lake</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#63b3cd; border: 2px dashed #63b3cd; border-radius:50%;"></div> Optional</div>
+</div>
+
+<!-- Calendar -->
+<div class="calendar-wrap">
+<div class="calendar">
+
+  <!-- Day headers -->
+  <div class="day-header">Sun</div>
+  <div class="day-header">Mon</div>
+  <div class="day-header">Tue</div>
+  <div class="day-header">Wed</div>
+  <div class="day-header">Thu</div>
+  <div class="day-header">Fri</div>
+  <div class="day-header">Sat</div>
+
+  <!-- ══ WEEK 1: Jun 7–13 ══ -->
+
+  <!-- Sun Jun 7 – Fri Jun 9: empty -->
+  <div class="day empty"></div>
+  <div class="day empty"></div>
+  <div class="day empty"></div>
+
+  <!-- Wed Jun 10 -->
+  <div class="day">
+    <div class="day-number">10 <span class="date-label">Wed</span></div>
+    <div class="event family">
+      <div class="who">Whole Family</div>
+      Dinner at Granby &amp; Bepop's
+    </div>
+    <div class="event kids">
+      <div class="who">Clara · William · Charlie</div>
+      Stay the night at Granby &amp; Bepop's
+    </div>
+  </div>
+
+  <!-- Thu Jun 11 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="day-number">11 <span class="date-label">Thu</span></div>
+    <div class="event emily">
+      <div class="who">Emily</div>
+      ✈️ Departs early morning – work trip begins
+    </div>
+    <div class="event art">
+      <div class="who">Art</div>
+      Drives Emily to airport
+    </div>
+    <div class="event granby">
+      <div class="who">Clara · William · Charlie</div>
+      At Granby &amp; Bepop's
+    </div>
+  </div>
+
+  <!-- Fri Jun 12 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="day-number">12 <span class="date-label">Fri</span></div>
+    <div class="event art">
+      <div class="who">Art</div>
+      In office
+    </div>
+    <div class="event granby">
+      <div class="who">Clara · William · Charlie</div>
+      Granby watches kids
+    </div>
+  </div>
+
+  <!-- Sat Jun 13 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="day-number">13 <span class="date-label">Sat</span></div>
+    <div class="event optional">
+      <div class="who">Maybe · Kids</div>
+      🎡 Children's Fair – 9:00–12:00pm<br>Ripon High School Commons
+    </div>
+  </div>
+
+  <!-- ══ WEEK 2: Jun 14–20 ══ -->
+
+  <!-- Sun Jun 14 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="day-number">14 <span class="date-label">Sun</span></div>
+    <div class="event camp">
+      <div class="who">Art · Clara · William</div>
+      🏕️ Leave for Camp Rokilio – check-in 3:00pm
+    </div>
+    <div class="event charlie">
+      <div class="who">Charlie</div>
+      Stays at Granby &amp; Bepop's
+    </div>
+  </div>
+
+  <!-- Mon Jun 15 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="camp-banner"></div>
+    <div class="day-number">15 <span class="date-label">Mon</span></div>
+    <div class="event camp">
+      <div class="who">Art · Clara · William</div>
+      🏕️ Camp Rokilio
+    </div>
+    <div class="event charlie">
+      <div class="who">Charlie</div>
+      At Granby &amp; Bepop's
+    </div>
+  </div>
+
+  <!-- Tue Jun 16 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="day-number">16 <span class="date-label">Tue</span></div>
+    <div class="event camp">
+      <div class="who">Art · Clara · William</div>
+      🏕️ Camp Rokilio
+    </div>
+    <div class="event charlie">
+      <div class="who">Charlie</div>
+      At Granby &amp; Bepop's
+    </div>
+  </div>
+
+  <!-- Wed Jun 17 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="day-number">17 <span class="date-label">Wed</span></div>
+    <div class="event camp">
+      <div class="who">Art · Clara · William</div>
+      🏕️ Return from Camp Rokilio (midday)
+    </div>
+    <div class="event grandma">
+      <div class="who">Clara · William · Charlie</div>
+      Grandma &amp; Papa pick up kids – rest of week
+    </div>
+  </div>
+
+  <!-- Thu Jun 18 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="day-number">18 <span class="date-label">Thu</span></div>
+    <div class="event grandma">
+      <div class="who">Clara · William · Charlie</div>
+      With Grandma &amp; Papa
+    </div>
+  </div>
+
+  <!-- Fri Jun 19 -->
+  <div class="day">
+    <div class="away-banner"></div>
+    <div class="day-number">19 <span class="date-label">Fri</span></div>
+    <div class="event grandma">
+      <div class="who">Clara · William · Charlie</div>
+      With Grandma &amp; Papa
+    </div>
+  </div>
+
+  <!-- Sat Jun 20 -->
+  <div class="day">
+    <div class="day-number">20 <span class="date-label">Sat</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family → Green Lake</span>
+    </div>
+    <div class="event emily">
+      <div class="who">Emily</div>
+      ✈️ Returns – late evening
+    </div>
+    <div class="event grandma">
+      <div class="who">Clara · William · Charlie</div>
+      With Grandma &amp; Papa
+    </div>
+  </div>
+
+  <!-- ══ WEEK 3: Jun 21–27 ══ -->
+
+  <!-- Sun Jun 21 -->
+  <div class="day">
+    <div class="day-number">21 <span class="date-label">Sun</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar → Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Mon Jun 22 -->
+  <div class="day">
+    <div class="day-number">22 <span class="date-label">Mon</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Tue Jun 23 -->
+  <div class="day">
+    <div class="day-number">23 <span class="date-label">Tue</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Wed Jun 24 -->
+  <div class="day">
+    <div class="day-number">24 <span class="date-label">Wed</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Thu Jun 25 -->
+  <div class="day">
+    <div class="day-number">25 <span class="date-label">Thu</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Fri Jun 26 -->
+  <div class="day">
+    <div class="day-number">26 <span class="date-label">Fri</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan → Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Sat Jun 27 -->
+  <div class="day">
+    <div class="day-number">27 <span class="date-label">Sat</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- ══ WEEK 4: Jun 28–Jul 4 ══ -->
+
+  <!-- Sun Jun 28 -->
+  <div class="day">
+    <div class="day-number">28 <span class="date-label">Sun</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Mon Jun 29 -->
+  <div class="day">
+    <div class="day-number">29 <span class="date-label">Mon</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Tue Jun 30 -->
+  <div class="day">
+    <div class="day-number">30 <span class="date-label">Tue</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Wed Jul 1 -->
+  <div class="day">
+    <div class="day-number">Jul 1 <span class="date-label">Wed</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Thu Jul 2 -->
+  <div class="day">
+    <div class="day-number">Jul 2 <span class="date-label">Thu</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Fri Jul 3 -->
+  <div class="day">
+    <div class="day-number">Jul 3 <span class="date-label">Fri</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan – Green Lake</span>
+    </div>
+  </div>
+
+  <!-- Sat Jul 4 -->
+  <div class="day">
+    <div class="day-number">Jul 4 <span class="date-label">Sat</span></div>
+    <div class="trip-bars">
+      <span class="trip-bar vendt-bar">🏡 Vendt Family – Green Lake</span>
+      <span class="trip-bar gwydhar-bar">🏡 Gwydhar – Green Lake</span>
+      <span class="trip-bar susan-bar">🏡 Susan – Green Lake</span>
+    </div>
+    <div class="event optional">
+      <div class="who">Holiday</div>
+      🎆 Independence Day
+    </div>
+  </div>
+
+  <!-- ══ WEEK 5: Jul 5 ══ -->
+
+  <!-- Sun Jul 5 -->
+  <div class="day">
+    <div class="day-number">Jul 5 <span class="date-label">Sun</span></div>
+    <div class="event vendt">
+      <div class="who">Vendt Family</div>
+      🏡 Depart Green Lake
+    </div>
+    <div class="event gwydhar">
+      <div class="who">Gwydhar</div>
+      🏡 Depart Green Lake
+    </div>
+    <div class="event susan">
+      <div class="who">Susan</div>
+      🏡 Depart Green Lake
+    </div>
+  </div>
+
+  <!-- Mon Jul 6 – Sat Jul 6: empty padding -->
+  <div class="day empty"></div>
+  <div class="day empty"></div>
+  <div class="day empty"></div>
+  <div class="day empty"></div>
+  <div class="day empty"></div>
+  <div class="day empty"></div>
+
+</div>
+</div>
+
+<!-- Footer note -->
+<p style="text-align:center; margin-top:20px; font-size:0.8rem; color:#a0aec0;">
+  Red top bar = Emily away &nbsp;|&nbsp; Blue top bar = Camp Rokilio &nbsp;|&nbsp; Colored strips = Green Lake stays &nbsp;|&nbsp; Dashed border = optional
+</p>
+
+</body>
+</html>
