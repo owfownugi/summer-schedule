@@ -209,6 +209,31 @@
     height: 5px;
     background: #4c51bf;
   }
+
+  /* Filter / solo mode */
+  .legend-item {
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: background 0.15s, box-shadow 0.15s;
+    user-select: none;
+  }
+  .legend-item:hover {
+    background: rgba(0,0,0,0.07);
+  }
+  .legend-item.active {
+    background: rgba(0,0,0,0.10);
+    box-shadow: 0 0 0 2px #4a5568;
+  }
+  .event {
+    transition: opacity 0.2s;
+  }
+  .trip-bar {
+    transition: opacity 0.2s;
+  }
+  .event.dimmed, .trip-bar.dimmed {
+    opacity: 0.1;
+  }
 </style>
 </head>
 <body>
@@ -217,19 +242,20 @@
 <p class="subtitle">June – July 2026 · Family Tracker</p>
 
 <!-- Legend -->
+<p style="text-align:center; font-size:0.75rem; color:#a0aec0; margin-bottom:8px;">Click any item to solo it</p>
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#e53e3e"></div> Emily (work trip)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3182ce"></div> Art</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#38a169"></div> Clara</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#d69e2e"></div> William</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#805ad5"></div> Charlie</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#dd6b20"></div> Granby &amp; Bepop</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#319795"></div> Grandma &amp; Papa</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#4c51bf"></div> Camp Rokilio</div>
-  <div class="legend-item"><div class="legend-bar" style="background:#2f855a"></div> Vendt Family – Green Lake</div>
-  <div class="legend-item"><div class="legend-bar" style="background:#0891b2"></div> Gwydhar – Green Lake</div>
-  <div class="legend-item"><div class="legend-bar" style="background:#7c3aed"></div> Susan – Green Lake</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#63b3cd; border: 2px dashed #63b3cd; border-radius:50%;"></div> Optional</div>
+  <div class="legend-item" data-filter="emily"><div class="legend-dot" style="background:#e53e3e"></div> Emily (work trip)</div>
+  <div class="legend-item" data-filter="art"><div class="legend-dot" style="background:#3182ce"></div> Art</div>
+  <div class="legend-item" data-filter="clara"><div class="legend-dot" style="background:#38a169"></div> Clara</div>
+  <div class="legend-item" data-filter="william"><div class="legend-dot" style="background:#d69e2e"></div> William</div>
+  <div class="legend-item" data-filter="charlie"><div class="legend-dot" style="background:#805ad5"></div> Charlie</div>
+  <div class="legend-item" data-filter="granby"><div class="legend-dot" style="background:#dd6b20"></div> Granby &amp; Bepop</div>
+  <div class="legend-item" data-filter="grandma"><div class="legend-dot" style="background:#319795"></div> Grandma &amp; Papa</div>
+  <div class="legend-item" data-filter="camp"><div class="legend-dot" style="background:#4c51bf"></div> Camp Rokilio</div>
+  <div class="legend-item" data-filter="vendt" data-bar-filter="vendt-bar"><div class="legend-bar" style="background:#2f855a"></div> Vendt Family – Green Lake</div>
+  <div class="legend-item" data-filter="gwydhar" data-bar-filter="gwydhar-bar"><div class="legend-bar" style="background:#0891b2"></div> Gwydhar – Green Lake</div>
+  <div class="legend-item" data-filter="susan" data-bar-filter="susan-bar"><div class="legend-bar" style="background:#7c3aed"></div> Susan – Green Lake</div>
+  <div class="legend-item" data-filter="optional"><div class="legend-dot" style="background:#63b3cd; border: 2px dashed #63b3cd; border-radius:50%;"></div> Optional</div>
 </div>
 
 <!-- Calendar -->
@@ -596,5 +622,42 @@
   Red top bar = Emily away &nbsp;|&nbsp; Blue top bar = Camp Rokilio &nbsp;|&nbsp; Colored strips = Green Lake stays &nbsp;|&nbsp; Dashed border = optional
 </p>
 
+<script>
+  const legendItems = document.querySelectorAll('.legend-item[data-filter]');
+  let activeFilter = null;
+
+  legendItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const filter = item.dataset.filter;
+      const barFilter = item.dataset.barFilter || null;
+
+      if (activeFilter === filter) {
+        // Deselect — show everything
+        activeFilter = null;
+        legendItems.forEach(li => li.classList.remove('active'));
+        resetAll();
+      } else {
+        activeFilter = filter;
+        legendItems.forEach(li => li.classList.remove('active'));
+        item.classList.add('active');
+        applyFilter(filter, barFilter);
+      }
+    });
+  });
+
+  function resetAll() {
+    document.querySelectorAll('.event').forEach(e => e.classList.remove('dimmed'));
+    document.querySelectorAll('.trip-bar').forEach(b => b.classList.remove('dimmed'));
+  }
+
+  function applyFilter(filter, barFilter) {
+    document.querySelectorAll('.event').forEach(e => {
+      e.classList.toggle('dimmed', !e.classList.contains(filter));
+    });
+    document.querySelectorAll('.trip-bar').forEach(b => {
+      b.classList.toggle('dimmed', !barFilter || !b.classList.contains(barFilter));
+    });
+  }
+</script>
 </body>
 </html>
